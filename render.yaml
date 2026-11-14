@@ -3,7 +3,8 @@ services:
   - type: web
     name: lifecycle-backend
     env: docker
-    dockerfilePath: ./lifecycle/lifecycle-backend/Dockerfile
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
     envVars:
@@ -13,13 +14,15 @@ services:
         value: "*"
       - key: SPRING_PROFILES_ACTIVE
         value: default
+      - key: PORT
+        value: 10000
 
   # Frontend Static Site
   - type: web
     name: lifecycle-frontend
     env: static
-    buildCommand: cd lifecycle/lifecycle-frontend && npm install && npm run build
-    staticPublishPath: ./lifecycle/lifecycle-frontend/dist
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
     plan: free
     region: oregon
     routes:
