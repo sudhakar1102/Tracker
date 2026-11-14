@@ -31,18 +31,23 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(a -> a
-                .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
+                .requestMatchers("/api/auth/**", "/h2-console/**", "/error").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.origin}") String origin) {
+    CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.origin:*}") String origin) {
         CorsConfiguration c = new CorsConfiguration();
-        c.setAllowedOrigins(List.of(origin));
-        c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        if ("*".equals(origin) || origin.trim().isEmpty()) {
+            c.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            c.setAllowedOriginPatterns(List.of(origin.split("\\s*,\\s*")));
+        }
+        c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         c.setAllowedHeaders(List.of("*"));
+        c.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource s = new UrlBasedCorsConfigurationSource();
         s.registerCorsConfiguration("/**", c);
         return s;
